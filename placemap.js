@@ -35,7 +35,7 @@ var CF=JSON.parse(document.getElementById('pm-cfg').getAttribute('data-cfg')),S=
 FLV=function(){return THM()==='light'?window.MAP_FLAVOR_LIGHT:window.MAP_FLAVOR},
 MF=typeof dsMapFont==='function'?dsMapFont(600,11):'600 11px system-ui,sans-serif',
 ATTR='© <a href="https://openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
-T=CF.t,LIVE=[],NC=[-124.5,35.8,-119.5,42],NCC=[-123.65,36.85,-121.2,38.87];
+T=CF.t,LIVE=[],UNCOV=6,NC=[-124.5,35.8,-119.5,42],NCC=[-123.65,36.85,-121.2,38.87];
 function ff(r){var seen=[];(function w(o,d){if(!o||typeof o!=='object'||d>4||seen.indexOf(o)>=0)return;seen.push(o);if('family' in o&&'size' in o&&typeof o.get==='function'){o.font=MF;return}if(o.font&&typeof o.font.get==='function'){o.font.font=MF}for(var k in o)w(o[k],d+1)})(r,0);return r}
 function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
 function dayDraw(f,c,m,G,el){var D=c.days,none=f.querySelector('.pm-none'),mk=[],busy=false;
@@ -70,27 +70,28 @@ function dayDraw(f,c,m,G,el){var D=c.days,none=f.querySelector('.pm-none'),mk=[]
   if(f.__pin)f.__sel(f.__pin,false)}
  function nearest(i){for(var k=1;k<D.length;k++)for(var s=-1;s<=1;s+=2){var j=i+s*k;if(j>=0&&j<D.length){var e=ends(D[j]);if(e.length)return e}}return[]}
  function go(){var d=D[f.__cur];busy=true;m.invalidateSize();f.__user=false;var all=ends(d);none.hidden=all.length>0;
-  if(!all.length){G.clearLayers();var near=nearest(f.__cur);if(near.length)m.fitBounds(L.latLngBounds(near),{paddingTopLeft:[36,36],paddingBottomRight:[64,40],maxZoom:12,animate:false});else m.setView(DEF,3,{animate:false});busy=false;return}
+  if(!all.length){G.clearLayers();var near=nearest(f.__cur);if(near.length)m.fitBounds(L.latLngBounds(near),{paddingTopLeft:[36,36],paddingBottomRight:[64,40],maxZoom:m.__cap(near,12),animate:false});else m.setView(DEF,3,{animate:false});busy=false;return}
   d.a.forEach(function(a){all=all.concat(arc(a.f,a.t))});
-  m.fitBounds(L.latLngBounds(all),{paddingTopLeft:[36,36],paddingBottomRight:[64,40],maxZoom:16,animate:false});
+  m.fitBounds(L.latLngBounds(all),{paddingTopLeft:[36,36],paddingBottomRight:[64,40],maxZoom:m.__cap(all,16),animate:false});
   f.__user=false;paint();busy=false}
  function redraw(){if(f.__user){m.invalidateSize();if(ends(D[f.__cur]).length)paint()}else go()}
  m.on('dragstart zoomstart',function(){if(!busy)f.__user=true});
  m.on('zoomend',function(){if(!busy&&ends(D[f.__cur]).length)paint()});
  f.__draw=go;f.__redraw=redraw;if(f.__cur!=null)go();return go}
-function init(f){var c=JSON.parse(f.getAttribute('data-pm')),el=f.querySelector('.pm-map');
+function init(f){var c=JSON.parse(f.getAttribute('data-pm')),el=f.querySelector('.pm-map');if(!el)return;
  var DEF=[39,-98],DY=!!c.days,m=L.map(el,{zoomControl:false,dragging:DY,touchZoom:DY,doubleClickZoom:DY,scrollWheelZoom:DY,boxZoom:false,keyboard:false,tap:false,zoomSnap:0.25,maxZoom:DY?18:15,bounceAtZoomLimits:false});
  if(DY)L.control.zoom({position:'topright'}).addTo(m);
  m.attributionControl.setPrefix(false);
  var F=FLV(),pr=protomapsL.paintRules(F),lr=ff(protomapsL.labelRules(F,'en'));
+ function cov(p,b){return p[0]>=b[1]&&p[0]<=b[3]&&p[1]>=b[0]&&p[1]<=b[2]}
  function bl(u,o,lab,bg,b){var q={url:u,paintRules:pr,labelRules:lab?lr:[],maxDataZoom:o.dz,attribution:o.at||''};if(bg)q.backgroundColor=F.background;if(b)q.bounds=L.latLngBounds([[b[1],b[0]],[b[3],b[2]]]);for(var k in o.o)q[k]=o.o[k];var l=protomapsL.leafletLayer(q).addTo(m);B.push([l,lab,bg])}
  var B=[];bl(CF.r+CF.w.f,{dz:CF.w.dz,at:ATTR},1,1);
  bl(T+'norcal-low.pmtiles',{dz:10,o:{maxZoom:10.5,minZoom:4.5}},1,1,NC);bl(T+'norcal-low.pmtiles',{dz:10,o:{minZoom:10.5}},0,1,NC);bl(T+'core.pmtiles',{dz:13,o:{minZoom:10.5}},1,0,NCC);
  CF.g.forEach(function(g){bl(CF.r+g.f,{dz:g.dz,o:{minZoom:4.5}},1,1,g.b)});
- c.i=c.i||[];var near=c.p.every(function(p){return Math.abs(p[0]-S[0])<0.6&&Math.abs(p[1]-S[1])<0.8});
+ c.i=c.i||[];m.__cap=function(ps,z){return ps.every(function(p){return cov(p,NC)||CF.g.some(function(g){return cov(p,g.b)})})?z:Math.min(z,UNCOV)};var near=c.p.every(function(p){return Math.abs(p[0]-S[0])<0.6&&Math.abs(p[1]-S[1])<0.8});
  dsPoiPin(L,m,S);var G=L.layerGroup().addTo(m);
  function drawFlat(){G.clearLayers();m.invalidateSize();
- var b=L.latLngBounds(c.p.concat(c.i,near&&c.p.length?[S]:[]));m.fitBounds(b,{padding:[28,28],maxZoom:14,animate:false});
+ var b=L.latLngBounds(c.p.concat(c.i,near&&c.p.length?[S]:[]));m.fitBounds(b,{padding:[28,28],maxZoom:m.__cap(c.p.concat(c.i),14),animate:false});
  var put=[],shown=c.p.map(function(p){var q=m.latLngToContainerPoint(p),dx=0,dy=0,k=0;
   while(k<8&&put.some(function(o){return Math.abs(o.x-(q.x+dx))<23&&Math.abs(o.y-(q.y+dy))<23})){k++;var a=k*Math.PI/2.5;dx=Math.round(Math.cos(a)*24);dy=Math.round(Math.sin(a)*24)}
   put.push({x:q.x+dx,y:q.y+dy});return m.containerPointToLatLng([q.x+dx,q.y+dy])});
@@ -103,14 +104,14 @@ function init(f){var c=JSON.parse(f.getAttribute('data-pm')),el=f.querySelector(
 function dayState(f){var c=JSON.parse(f.getAttribute('data-pm')),D=c.days,N=D.length,pv=f.querySelector('.pm-prev'),nx=f.querySelector('.pm-next'),tt=f.querySelector('.pm-ttl'),chips=f.querySelectorAll('.pm-chip'),tls=f.querySelectorAll('.pm-tl');
  function la(){return new Date().toLocaleDateString('en-CA',{timeZone:'America/Los_Angeles'})}
  function first(){var t=la();for(var i=0;i<N;i++)if(D[i].d===t)return i;return 0}
- function go(i){i=Math.max(0,Math.min(N-1,i));f.__cur=i;f.__pin=0;f.setAttribute('data-day',i);tt.textContent=D[i].t;pv.disabled=i===0;nx.disabled=i===N-1;
+ function go(i){i=Math.max(0,Math.min(N-1,i));f.__cur=i;f.__pin=0;f.setAttribute('data-day',i);if(tt){tt.textContent=D[i].t;pv.disabled=i===0;nx.disabled=i===N-1}
   chips.forEach(function(b,j){b.setAttribute('aria-current',j===i?'true':'false')});tls.forEach(function(x,j){x.hidden=j!==i});
   var cur=chips[i];if(cur&&cur.scrollIntoView&&cur.parentNode.scrollWidth>cur.parentNode.clientWidth)cur.parentNode.scrollLeft=cur.offsetLeft-cur.parentNode.clientWidth/2+cur.offsetWidth/2;
   if(f.__draw)f.__draw()}
  f.__sel=function(n,scroll){f.__pin=n;f.querySelectorAll('.tl-c.sel').forEach(function(x){x.classList.remove('sel')});var cd=f.querySelector('.pm-tl:not([hidden]) .tl-c[data-pin="'+n+'"]');
   if(cd){cd.classList.add('sel');if(scroll&&cd.scrollIntoView)cd.scrollIntoView({block:'nearest'})}
   f.querySelectorAll('.pm-pin.sel').forEach(function(x){x.classList.remove('sel')});var pins=f.querySelectorAll('.pm-pin:not(.air):not(.idea)');if(pins[n-1])pins[n-1].classList.add('sel')};
- pv.addEventListener('click',function(){go(f.__cur-1)});nx.addEventListener('click',function(){go(f.__cur+1)});
+ if(pv)pv.addEventListener('click',function(){go(f.__cur-1)});if(nx)nx.addEventListener('click',function(){go(f.__cur+1)});
  chips.forEach(function(b,j){b.addEventListener('click',function(){go(j)})});
  f.querySelectorAll('.tl-c[data-pin]').forEach(function(li){li.addEventListener('click',function(){f.__sel(+li.getAttribute('data-pin'),false)})});
  go(first())}
