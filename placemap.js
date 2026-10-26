@@ -43,12 +43,13 @@ function dayDraw(f,c,m,G,el){var D=c.days,none=f.querySelector('.pm-none'),mk=[]
  function lbl(p,x){L.marker(p,{interactive:false,keyboard:false,icon:L.divIcon({className:'pm-ic pm-lblic',iconSize:null,html:'<span class="pm-lbl">'+x+'</span>'})}).addTo(G)}
  function arc(a,b){var o=[],dy=b[0]-a[0],dx=b[1]-a[1];for(var i=0;i<=24;i++){var t=i/24,s=Math.sin(Math.PI*t)*0.18;o.push([a[0]+dy*t-dx*s,a[1]+dx*t+dy*s])}return o}
  function ends(d){var o=[];d.s.forEach(function(p){o.push(p)});d.a.forEach(function(a){o.push(a.f.slice(0,2),a.t.slice(0,2))});return o}
- function inView(q,W,H){return q.x>=14&&q.x<=W-14&&q.y>=14&&q.y<=H-14}
- function legLabel(a,b,put){var p=m.latLngToContainerPoint(a),q=m.latLngToContainerPoint(b),mx=(p.x+q.x)/2,my=(p.y+q.y)/2,L2=p.distanceTo(q);
-  if(L2>70)return m.containerPointToLatLng([mx,my]);
-  var nx=L2?-(q.y-p.y)/L2:0,ny=L2?(q.x-p.x)/L2:-1,best=null,gap=-1;
-  [1,-1].forEach(function(s){var x=mx+nx*s*26,y=my+ny*s*26,g=put.reduce(function(m2,o){return Math.min(m2,Math.hypot(o.x-x,o.y-y))},1e9);if(g>gap){gap=g;best=[x,y]}});
-  return m.containerPointToLatLng(best)}
+ function inView(q,W,H){return q.x>=14&&q.x<=W-14&&q.y>=14&&q.y<=H-14&&!(q.x>W-170&&q.y>H-34)&&!(q.x>W-64&&q.y<110)}
+ function legLabel(a,b,put){var p=m.latLngToContainerPoint(a),q=m.latLngToContainerPoint(b),mx=(p.x+q.x)/2,my=(p.y+q.y)/2,L2=p.distanceTo(q),W=el.clientWidth,H=el.clientHeight,
+  nx=L2?-(q.y-p.y)/L2:0,ny=L2?(q.x-p.x)/L2:-1,tx=L2?(q.x-p.x)/L2:1,ty=L2?(q.y-p.y)/L2:0,best=[mx,my],gap=-1,c=[[0,0]];
+  [20,34,48,64,80,96].forEach(function(o){c.push([o,0],[-o,0])});[.3,-.3].forEach(function(s){c.push([0,s*L2])});
+  for(var i=0;i<c.length;i++){var x=mx+nx*c[i][0]+tx*c[i][1],y=my+ny*c[i][0]+ty*c[i][1];if(!inView({x:x,y:y},W,H))continue;
+   var g=put.reduce(function(m2,o){return Math.min(m2,Math.max(Math.abs(o.x-x)-(o.w+64)/2,Math.abs(o.y-y)-(o.h+20)/2))},1e9);if(g>gap){gap=g;best=[x,y]}if(g>=0)break}
+  put.push({x:best[0],y:best[1],w:64,h:20});return m.containerPointToLatLng(best)}
  function paint(){var d=D[f.__cur];G.clearLayers();mk=[];var W=el.clientWidth,H=el.clientHeight,put=[];
   d.a.forEach(function(a,j){var q=arc(a.f,a.t);
    L.polyline(q,{color:css('--route-casing'),weight:7,opacity:.9,interactive:false}).addTo(G);L.polyline(q,{color:css('--route'),weight:3.5,interactive:false}).addTo(G);
@@ -64,7 +65,8 @@ function dayDraw(f,c,m,G,el){var D=c.days,none=f.querySelector('.pm-none'),mk=[]
    L.polyline([pts[j],pts[j+1]],{color:css('--route'),weight:3.5,dashArray:dash,opacity:lg?1:.55,interactive:false}).addTo(G);
    if(lg&&lg[1])lbl(legLabel(pts[j],pts[j+1],put),lg[1]+' min')}
   pts.forEach(function(p,j){var mkr=pin(p,j+1);mkr.on('click',function(){f.__sel(j+1,true)});mk[j+1]=mkr});
-  if(d.s.length){var pad=L.latLngBounds(d.s).pad(0.25);c.i.forEach(function(p){if(pad.contains(p))pin(p,'i','idea')})}
+  if(d.s.length){var pad=L.latLngBounds(d.s).pad(0.25);c.i.forEach(function(p){if(!pad.contains(p))return;var z=m.latLngToContainerPoint(p);
+   if(put.some(function(o){return Math.abs(o.x-z.x)<(o.w+22)/2&&Math.abs(o.y-z.y)<(o.h+22)/2}))return;put.push({x:z.x,y:z.y,w:22,h:22});pin(p,'i','idea')})}
   if(f.__pin)f.__sel(f.__pin,false)}
  function go(){var d=D[f.__cur];busy=true;m.invalidateSize();var all=ends(d);none.hidden=all.length>0;
   if(!all.length){G.clearLayers();busy=false;return}
