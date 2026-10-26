@@ -68,7 +68,7 @@ function dayDraw(f,c,m,G,el){var D=c.days,none=f.querySelector('.pm-none'),mk=[]
   if(d.s.length){var pad=L.latLngBounds(d.s).pad(0.25);c.i.forEach(function(p){if(!pad.contains(p))return;var z=m.latLngToContainerPoint(p);
    if(put.some(function(o){return Math.abs(o.x-z.x)<(o.w+22)/2&&Math.abs(o.y-z.y)<(o.h+22)/2}))return;put.push({x:z.x,y:z.y,w:22,h:22});pin(p,'i','idea')})}
   if(f.__pin)f.__sel(f.__pin,false)}
- function go(){var d=D[f.__cur];busy=true;m.invalidateSize();var all=ends(d);none.hidden=all.length>0;
+ function go(){var d=D[f.__cur];busy=true;m.invalidateSize();f.__user=false;var all=ends(d);none.hidden=all.length>0;
   if(!all.length){G.clearLayers();busy=false;return}
   d.a.forEach(function(a){all=all.concat(arc(a.f,a.t))});
   m.fitBounds(L.latLngBounds(all),{paddingTopLeft:[36,36],paddingBottomRight:[64,40],maxZoom:16,animate:false});
