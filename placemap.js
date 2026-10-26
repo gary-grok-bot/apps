@@ -44,6 +44,11 @@ function dayDraw(f,c,m,G,el){var D=c.days,none=f.querySelector('.pm-none'),mk=[]
  function arc(a,b){var o=[],dy=b[0]-a[0],dx=b[1]-a[1];for(var i=0;i<=24;i++){var t=i/24,s=Math.sin(Math.PI*t)*0.18;o.push([a[0]+dy*t-dx*s,a[1]+dx*t+dy*s])}return o}
  function ends(d){var o=[];d.s.forEach(function(p){o.push(p)});d.a.forEach(function(a){o.push(a.f.slice(0,2),a.t.slice(0,2))});return o}
  function inView(q,W,H){return q.x>=14&&q.x<=W-14&&q.y>=14&&q.y<=H-14}
+ function legLabel(a,b,put){var p=m.latLngToContainerPoint(a),q=m.latLngToContainerPoint(b),mx=(p.x+q.x)/2,my=(p.y+q.y)/2,L2=p.distanceTo(q);
+  if(L2>70)return m.containerPointToLatLng([mx,my]);
+  var nx=L2?-(q.y-p.y)/L2:0,ny=L2?(q.x-p.x)/L2:-1,best=null,gap=-1;
+  [1,-1].forEach(function(s){var x=mx+nx*s*26,y=my+ny*s*26,g=put.reduce(function(m2,o){return Math.min(m2,Math.hypot(o.x-x,o.y-y))},1e9);if(g>gap){gap=g;best=[x,y]}});
+  return m.containerPointToLatLng(best)}
  function paint(){var d=D[f.__cur];G.clearLayers();mk=[];var W=el.clientWidth,H=el.clientHeight,put=[];
   d.a.forEach(function(a,j){var q=arc(a.f,a.t);
    L.polyline(q,{color:css('--route-casing'),weight:7,opacity:.9,interactive:false}).addTo(G);L.polyline(q,{color:css('--route'),weight:3.5,interactive:false}).addTo(G);
@@ -57,7 +62,7 @@ function dayDraw(f,c,m,G,el){var D=c.days,none=f.querySelector('.pm-none'),mk=[]
   for(var j=0;j<pts.length-1;j++){var lg=d.l[j],dash=lg&&lg[0]==='walk'?'2 7':lg&&lg[0]==='transit'?'9 7':null;
    L.polyline([pts[j],pts[j+1]],{color:css('--route-casing'),weight:7,opacity:.9,interactive:false}).addTo(G);
    L.polyline([pts[j],pts[j+1]],{color:css('--route'),weight:3.5,dashArray:dash,opacity:lg?1:.55,interactive:false}).addTo(G);
-   if(lg&&lg[1]&&m.latLngToContainerPoint(pts[j]).distanceTo(m.latLngToContainerPoint(pts[j+1]))>70)lbl([(pts[j].lat+pts[j+1].lat)/2,(pts[j].lng+pts[j+1].lng)/2],lg[1]+' min')}
+   if(lg&&lg[1])lbl(legLabel(pts[j],pts[j+1],put),lg[1]+' min')}
   pts.forEach(function(p,j){var mkr=pin(p,j+1);mkr.on('click',function(){f.__sel(j+1,true)});mk[j+1]=mkr});
   if(d.s.length){var pad=L.latLngBounds(d.s).pad(0.25);c.i.forEach(function(p){if(pad.contains(p))pin(p,'i','idea')})}
   if(f.__pin)f.__sel(f.__pin,false)}
