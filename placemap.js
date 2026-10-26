@@ -68,8 +68,9 @@ function dayDraw(f,c,m,G,el){var D=c.days,none=f.querySelector('.pm-none'),mk=[]
   if(d.s.length){var pad=L.latLngBounds(d.s).pad(0.25);c.i.forEach(function(p){if(!pad.contains(p))return;var z=m.latLngToContainerPoint(p);
    if(put.some(function(o){return Math.abs(o.x-z.x)<(o.w+22)/2&&Math.abs(o.y-z.y)<(o.h+22)/2}))return;put.push({x:z.x,y:z.y,w:22,h:22});pin(p,'i','idea')})}
   if(f.__pin)f.__sel(f.__pin,false)}
+ function nearest(i){for(var k=1;k<D.length;k++)for(var s=-1;s<=1;s+=2){var j=i+s*k;if(j>=0&&j<D.length){var e=ends(D[j]);if(e.length)return e}}return[]}
  function go(){var d=D[f.__cur];busy=true;m.invalidateSize();f.__user=false;var all=ends(d);none.hidden=all.length>0;
-  if(!all.length){G.clearLayers();busy=false;return}
+  if(!all.length){G.clearLayers();var near=nearest(f.__cur);if(near.length)m.fitBounds(L.latLngBounds(near),{paddingTopLeft:[36,36],paddingBottomRight:[64,40],maxZoom:12,animate:false});else m.setView(DEF,3,{animate:false});busy=false;return}
   d.a.forEach(function(a){all=all.concat(arc(a.f,a.t))});
   m.fitBounds(L.latLngBounds(all),{paddingTopLeft:[36,36],paddingBottomRight:[64,40],maxZoom:16,animate:false});
   f.__user=false;paint();busy=false}
@@ -78,7 +79,7 @@ function dayDraw(f,c,m,G,el){var D=c.days,none=f.querySelector('.pm-none'),mk=[]
  m.on('zoomend',function(){if(!busy&&ends(D[f.__cur]).length)paint()});
  f.__draw=go;f.__redraw=redraw;if(f.__cur!=null)go();return go}
 function init(f){var c=JSON.parse(f.getAttribute('data-pm')),el=f.querySelector('.pm-map');
- var DY=!!c.days,m=L.map(el,{zoomControl:false,dragging:DY,touchZoom:DY,doubleClickZoom:DY,scrollWheelZoom:DY,boxZoom:false,keyboard:false,tap:false,zoomSnap:0.25,maxZoom:DY?18:15,bounceAtZoomLimits:false});
+ var DEF=[39,-98],DY=!!c.days,m=L.map(el,{zoomControl:false,dragging:DY,touchZoom:DY,doubleClickZoom:DY,scrollWheelZoom:DY,boxZoom:false,keyboard:false,tap:false,zoomSnap:0.25,maxZoom:DY?18:15,bounceAtZoomLimits:false});
  if(DY)L.control.zoom({position:'topright'}).addTo(m);
  m.attributionControl.setPrefix(false);
  var F=FLV(),pr=protomapsL.paintRules(F),lr=ff(protomapsL.labelRules(F,'en'));
