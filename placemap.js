@@ -35,7 +35,7 @@ var CF=JSON.parse(document.getElementById('pm-cfg').getAttribute('data-cfg')),S=
 FLV=function(){return THM()==='light'?window.MAP_FLAVOR_LIGHT:window.MAP_FLAVOR},
 MF=typeof dsMapFont==='function'?dsMapFont(600,11):'600 11px system-ui,sans-serif',
 ATTR='© <a href="https://openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
-T=CF.t,LIVE=[];
+T=CF.t,LIVE=[],NC=[-124.5,35.8,-119.5,42],NCC=[-123.65,36.85,-121.2,38.87];
 function ff(r){var seen=[];(function w(o,d){if(!o||typeof o!=='object'||d>4||seen.indexOf(o)>=0)return;seen.push(o);if('family' in o&&'size' in o&&typeof o.get==='function'){o.font=MF;return}if(o.font&&typeof o.font.get==='function'){o.font.font=MF}for(var k in o)w(o[k],d+1)})(r,0);return r}
 function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
 function dayDraw(f,c,m,G,el){var D=c.days,none=f.querySelector('.pm-none'),mk=[],busy=false;
@@ -83,9 +83,10 @@ function init(f){var c=JSON.parse(f.getAttribute('data-pm')),el=f.querySelector(
  if(DY)L.control.zoom({position:'topright'}).addTo(m);
  m.attributionControl.setPrefix(false);
  var F=FLV(),pr=protomapsL.paintRules(F),lr=ff(protomapsL.labelRules(F,'en'));
- var B=[[protomapsL.leafletLayer({url:T+'norcal-low.pmtiles',paintRules:pr,labelRules:lr,backgroundColor:F.background,maxDataZoom:10,maxZoom:10.5,attribution:ATTR}).addTo(m),1,1],
- [protomapsL.leafletLayer({url:T+'norcal-low.pmtiles',paintRules:pr,labelRules:[],backgroundColor:F.background,maxDataZoom:10,minZoom:10.5,attribution:''}).addTo(m),0,1],
- [protomapsL.leafletLayer({url:T+'core.pmtiles',paintRules:pr,labelRules:lr,maxDataZoom:13,minZoom:10.5,attribution:''}).addTo(m),1,0]];
+ function bl(u,o,lab,bg,b){var q={url:u,paintRules:pr,labelRules:lab?lr:[],maxDataZoom:o.dz,attribution:o.at||''};if(bg)q.backgroundColor=F.background;if(b)q.bounds=L.latLngBounds([[b[1],b[0]],[b[3],b[2]]]);for(var k in o.o)q[k]=o.o[k];var l=protomapsL.leafletLayer(q).addTo(m);B.push([l,lab,bg])}
+ var B=[];bl(CF.r+CF.w.f,{dz:CF.w.dz,at:ATTR},1,1);
+ bl(T+'norcal-low.pmtiles',{dz:10,o:{maxZoom:10.5,minZoom:4.5}},1,1,NC);bl(T+'norcal-low.pmtiles',{dz:10,o:{minZoom:10.5}},0,1,NC);bl(T+'core.pmtiles',{dz:13,o:{minZoom:10.5}},1,0,NCC);
+ CF.g.forEach(function(g){bl(CF.r+g.f,{dz:g.dz,o:{minZoom:4.5}},1,1,g.b)});
  c.i=c.i||[];var near=c.p.every(function(p){return Math.abs(p[0]-S[0])<0.6&&Math.abs(p[1]-S[1])<0.8});
  dsPoiPin(L,m,S);var G=L.layerGroup().addTo(m);
  function drawFlat(){G.clearLayers();m.invalidateSize();
