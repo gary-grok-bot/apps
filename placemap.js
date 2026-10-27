@@ -38,11 +38,12 @@ ATTR='© <a href="https://openstreetmap.org/copyright" target="_blank" rel="noop
 T=CF.t,LIVE=[],UNCOV=6,NC=[-124.5,35.8,-119.5,42],NCC=[-123.65,36.85,-121.2,38.87];
 function ff(r){var seen=[];(function w(o,d){if(!o||typeof o!=='object'||d>4||seen.indexOf(o)>=0)return;seen.push(o);if('family' in o&&'size' in o&&typeof o.get==='function'){o.font=MF;return}if(o.font&&typeof o.font.get==='function'){o.font.font=MF}for(var k in o)w(o[k],d+1)})(r,0);return r}
 function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
-function dayDraw(f,c,m,G,el){var D=c.days,none=f.querySelector('.pm-none'),mk=[],busy=false;
+function dayDraw(f,c,m,G,el){var RAD=Math.PI/180,D=c.days,none=f.querySelector('.pm-none'),mk=[],busy=false;
  function pin(p,n,cls){return L.marker(p,{keyboard:false,zIndexOffset:500,icon:L.divIcon({className:'pm-ic',iconSize:cls==='air'?[48,22]:[22,22],html:'<span class="pm-pin'+(cls?' '+cls:'')+'">'+n+'</span>'})}).addTo(G)}
  function lbl(p,x){L.marker(p,{interactive:false,keyboard:false,icon:L.divIcon({className:'pm-ic pm-lblic',iconSize:null,html:'<span class="pm-lbl">'+x+'</span>'})}).addTo(G)}
- function arc(a,b){var o=[],dy=b[0]-a[0],dx=b[1]-a[1];for(var i=0;i<=24;i++){var t=i/24,s=Math.sin(Math.PI*t)*0.18;o.push([a[0]+dy*t-dx*s,a[1]+dx*t+dy*s])}return o}
- function ends(d){var o=[];d.s.forEach(function(p){o.push(p)});d.a.forEach(function(a){o.push(a.f.slice(0,2),a.t.slice(0,2))});return o}
+ function unit(p){var c=Math.cos(p[0]*RAD);return[c*Math.cos(p[1]*RAD),c*Math.sin(p[1]*RAD),Math.sin(p[0]*RAD)]}
+ function arc(a,b){var u=unit(a),v=unit(b),lon=a[1],o=[];for(var i=0;i<=24;i++){var t=i/24,p=u.map(function(c,k){return c*(1-t)+v[k]*t});lon+=(Math.atan2(p[1],p[0])/RAD-lon+540)%360-180;o.push([Math.atan2(p[2],Math.hypot(p[0],p[1]))/RAD,lon])}return o}
+ function ends(d){return d.a.reduce(function(o,a){return o.concat(arc(a.f,a.t))},d.s.slice())}
  function inView(q,W,H){return q.x>=14&&q.x<=W-14&&q.y>=14&&q.y<=H-14&&!(q.x>W-170&&q.y>H-34)&&!(q.x>W-64&&q.y<110)}
  function legLabel(a,b,put){var p=m.latLngToContainerPoint(a),q=m.latLngToContainerPoint(b),mx=(p.x+q.x)/2,my=(p.y+q.y)/2,L2=p.distanceTo(q),W=el.clientWidth,H=el.clientHeight,
   nx=L2?-(q.y-p.y)/L2:0,ny=L2?(q.x-p.x)/L2:-1,tx=L2?(q.x-p.x)/L2:1,ty=L2?(q.y-p.y)/L2:0,best=[mx,my],gap=-1,c=[[0,0]];
@@ -53,7 +54,7 @@ function dayDraw(f,c,m,G,el){var D=c.days,none=f.querySelector('.pm-none'),mk=[]
  function paint(){var d=D[f.__cur];G.clearLayers();mk=[];var W=el.clientWidth,H=el.clientHeight,put=[];
   d.a.forEach(function(a,j){var q=arc(a.f,a.t);
    L.polyline(q,{color:css('--route-casing'),weight:7,opacity:.9,interactive:false}).addTo(G);L.polyline(q,{color:css('--route'),weight:3.5,interactive:false}).addTo(G);
-   [a.f,a.t].forEach(function(e){var z=m.latLngToContainerPoint(e.slice(0,2));put.push({x:z.x,y:z.y,w:48,h:22});pin(e.slice(0,2),e[2],'air')});
+   [[q[0],a.f[2]],[q[q.length-1],a.t[2]]].forEach(function(e){var z=m.latLngToContainerPoint(e[0]);put.push({x:z.x,y:z.y,w:48,h:22});pin(e[0],e[1],'air')});
    if(a.x)lbl(q[12],a.x)});
   var pts=d.s.map(function(p){var q=m.latLngToContainerPoint(p),dx=0,dy=0,k=0,was=inView(q,W,H);
    function hit(){return put.some(function(o){return Math.abs(o.x-(q.x+dx))<(o.w+22)/2+1&&Math.abs(o.y-(q.y+dy))<(o.h+22)/2+1})}
@@ -77,7 +78,6 @@ function dayDraw(f,c,m,G,el){var D=c.days,none=f.querySelector('.pm-none'),mk=[]
  function nearest(i){for(var k=1;k<D.length;k++)for(var s=-1;s<=1;s+=2){var j=i+s*k;if(j>=0&&j<D.length){var e=ends(D[j]);if(e.length)return e}}return[]}
  function go(){var d=D[f.__cur];busy=true;m.invalidateSize();f.__user=false;var all=ends(d);none.hidden=all.length>0;
   if(!all.length){G.clearLayers();var near=nearest(f.__cur);if(near.length)m.fitBounds(L.latLngBounds(near),{paddingTopLeft:[36,36],paddingBottomRight:[64,40],maxZoom:m.__cap(near,12),animate:false});else m.setView(DEF,3,{animate:false});busy=false;return}
-  d.a.forEach(function(a){all=all.concat(arc(a.f,a.t))});
   m.fitBounds(L.latLngBounds(all),{paddingTopLeft:[36,36],paddingBottomRight:[d.a.length?84:64,40],maxZoom:m.__cap(all,16),animate:false});
   f.__user=false;paint();busy=false}
  function redraw(){if(f.__user){m.invalidateSize();if(ends(D[f.__cur]).length)paint()}else go()}
