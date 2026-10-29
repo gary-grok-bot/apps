@@ -17,12 +17,25 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - id: hour
+        run: echo "h=$(date -u +%Y%m%d%H)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: .git
+          key: apps-git-${{ steps.hour.outputs.h }}
+          restore-keys: apps-git-
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - uses: actions/upload-pages-artifact@v3
+          clean: false
+      - run: tar --dereference --hard-dereference -cf "$RUNNER_TEMP/artifact.tar" --exclude=.git --exclude=.github .
+      - uses: actions/upload-artifact@v4
         with:
-          path: .
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          retention-days: 1
+          compression-level: 1
+          if-no-files-found: error
       - id: deployment
         uses: actions/deploy-pages@v4
         with:
