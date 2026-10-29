@@ -38,7 +38,7 @@ ATTR='© <a href="https://openstreetmap.org/copyright" target="_blank" rel="noop
 LIVE=[],UNCOV=6,NC=[-124.5,35.8,-119.5,42],NCC=CF.cb;
 function ff(r){var seen=[];(function w(o,d){if(!o||typeof o!=='object'||d>4||seen.indexOf(o)>=0)return;seen.push(o);if('family' in o&&'size' in o&&typeof o.get==='function'){o.font=MF;return}if(o.font&&typeof o.font.get==='function'){o.font.font=MF}for(var k in o)w(o[k],d+1)})(r,0);return r}
 function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
-function dayDraw(f,c,m,G,el){var RAD=Math.PI/180,D=c.days,none=f.querySelector('.pm-none'),mk=[],busy=false;
+function dayDraw(f,c,m,G,el){var RAD=Math.PI/180,D=c.days,mk=[],busy=false;
  function pin(p,n,cls){return L.marker(p,{keyboard:false,zIndexOffset:500,icon:L.divIcon({className:'pm-ic',iconSize:cls==='air'?[48,22]:[22,22],html:'<span class="pm-pin'+(cls?' '+cls:'')+'">'+n+'</span>'})}).addTo(G)}
  function lbl(p,x){L.marker(p,{interactive:false,keyboard:false,icon:L.divIcon({className:'pm-ic pm-lblic',iconSize:null,html:'<span class="pm-lbl">'+x+'</span>'})}).addTo(G)}
  function unit(p){var c=Math.cos(p[0]*RAD);return[c*Math.cos(p[1]*RAD),c*Math.sin(p[1]*RAD),Math.sin(p[0]*RAD)]}
@@ -76,7 +76,7 @@ function dayDraw(f,c,m,G,el){var RAD=Math.PI/180,D=c.days,none=f.querySelector('
   m.invalidateSize();var q=m.__cap(ps,z);
   if(ps.length===1)m.flyTo(ps[0],q,{animate:!rm,duration:.7});else m.flyToBounds(L.latLngBounds(ps),{paddingTopLeft:[36,36],paddingBottomRight:[64,40],maxZoom:q,animate:!rm,duration:.7})}
  function nearest(i){for(var k=1;k<D.length;k++)for(var s=-1;s<=1;s+=2){var j=i+s*k;if(j>=0&&j<D.length){var e=ends(D[j]);if(e.length)return e}}return[]}
- function go(){var d=D[f.__cur];busy=true;m.invalidateSize();f.__user=false;var all=ends(d);none.hidden=all.length>0;
+ function go(){var d=D[f.__cur];busy=true;m.invalidateSize();f.__user=false;var all=ends(d);
   if(!all.length){G.clearLayers();var near=nearest(f.__cur);if(near.length)m.fitBounds(L.latLngBounds(near),{paddingTopLeft:[36,36],paddingBottomRight:[64,40],maxZoom:m.__cap(near,12),animate:false});else m.setView(DEF,3,{animate:false});busy=false;return}
   m.fitBounds(L.latLngBounds(all),{paddingTopLeft:[36,36],paddingBottomRight:[d.a.length?84:64,40],maxZoom:m.__cap(all,16),animate:false});
   f.__user=false;paint();busy=false}
