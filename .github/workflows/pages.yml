@@ -28,6 +28,10 @@ jobs:
         with:
           fetch-depth: 1
           clean: false
+      - if: ${{ vars.LIVE_HOST != '' }}
+        env:
+          LIVE_HOST: ${{ vars.LIVE_HOST }}
+        run: python3 .github/redirect.py
       - run: tar --dereference --hard-dereference -cf "$RUNNER_TEMP/artifact.tar" --exclude=.git --exclude=.github .
       - uses: actions/upload-artifact@v4
         with:
