@@ -90,7 +90,7 @@ function init(f){var c=JSON.parse(f.getAttribute('data-pm')),el=f.querySelector(
  m.attributionControl.setPrefix(false);
  var F=FLV(),pr=protomapsL.paintRules(F),lr=ff(protomapsL.labelRules(F,'en'));
  function cov(p,b){return p[0]>=b[1]&&p[0]<=b[3]&&p[1]>=b[0]&&p[1]<=b[2]}
- function bl(u,o,lab,bg,b){var q={url:u,paintRules:pr,labelRules:lab?lr:[],maxDataZoom:o.dz,attribution:o.at||''};if(bg)q.backgroundColor=F.background;if(b)q.bounds=L.latLngBounds([[b[1],b[0]],[b[3],b[2]]]);for(var k in o.o)q[k]=o.o[k];var l=protomapsL.leafletLayer(q).addTo(m);B.push([l,lab,bg])}
+ function bl(u,o,lab,bg,b){u={"basemap/vancouver-1.pmtiles":"../../t/vancouver-1-936c8c3dab4be356.pmtiles","basemap/world.pmtiles":"../../t/world-0b3684a43d5d267d.pmtiles"}[u]||u;var q={url:u,paintRules:pr,labelRules:lab?lr:[],maxDataZoom:o.dz,attribution:o.at||''};if(bg)q.backgroundColor=F.background;if(b)q.bounds=L.latLngBounds([[b[1],b[0]],[b[3],b[2]]]);for(var k in o.o)q[k]=o.o[k];var l=protomapsL.leafletLayer(q).addTo(m);B.push([l,lab,bg])}
  var B=[];bl(CF.r+CF.w.f,{dz:CF.w.dz,at:ATTR},1,1);
  bl(T+'norcal-low.pmtiles',{dz:10,o:{maxZoom:10.5,minZoom:4.5}},1,1,NC);bl(T+'norcal-low.pmtiles',{dz:10,o:{minZoom:10.5}},0,1,NC);bl(T+'core.pmtiles',{dz:13,o:{minZoom:10.5}},1,0,NCC);
  CF.g.forEach(function(g){bl(CF.r+g.f,{dz:g.dz,o:{minZoom:4.5}},1,1,g.b)});
